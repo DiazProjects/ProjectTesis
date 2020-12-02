@@ -40,7 +40,7 @@ import time
 import datetime
 import Adafruit_DHT
 import gspread
-
+import requests
 import httplib
 import urllib
 import RPi.GPIO as GPIO
@@ -48,16 +48,12 @@ import serial
 
 arduino = serial.Serial("/dev/ttyACM0", 9600)
 DHTSensor = Adafruit_DHT.DHT22
-key="1LSKKY011RMJE7NJ"
 temp=0
 hum=0
-GPIO_Pin=4
 humid_rela=0
 tempe_rela=0
 time.sleep(2)
-
 contador=0
-
 ki=1.3
 kp=30
 kd=8
@@ -72,12 +68,17 @@ U=0
 hora=0
 min=0
 sec=0
-#Pin_bomba = 7
-#M2 = 8
-#Vent = 5
+
+GPIO_Pin=4
+Pin_bomba = 7
+M2 = 8
+Vent = 5
 
 GPIO.setmode(GPIO.BCM)
 #GPIO.setup(Pin_bomba, GPIO.OUT)
+
+url1 = "https://api.thingspeak.com/update?api_key=SQ7HS1M85ZEEXYEN&field1=0"
+url2 = "https://api.thingspeak.com/update?api_key=SQ7HS1M85ZEEXYEN&field2=0"
 
 from oauth2client.service_account import ServiceAccountCredentials
 
@@ -186,14 +187,7 @@ while True:
         print h
 
     err_1 = err
-
-    params = urllib.urlencode({'field1': temp, 'key': key})
-    headers = {"Content-typZZe": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-    params2 = urllib.urlencode({'field2': hum, 'key': key})
-    headers2 = {"Content-typZZe": "application/x-www-form-urlencoded", "Accept": "text/plain"}
-    conn = httplib.HTTPConnection("api.thingspeak.com:80")
-    conn2 = httplib.HTTPConnection("api.thingspeak.com:80")
-
+    
     # Login if necessary.
     if worksheet is None:
         worksheet = login_open_sheet(GDOCS_OAUTH_JSON, GDOCS_SPREADSHEET_NAME)
@@ -211,19 +205,16 @@ while True:
     print('Temperature: {0:0.1f} C'.format(temp))
     print('Humidity:    {0:0.1f} %'.format(hum))
     print('Action Control: {0:0.1f}'.format(ac))
+    
+    write_temperature = str(temp)
+    write_humidity = str(hum)
+    enviar = requests.get(url1 + write_temperature + url2 + write_humidity)
+    time.sleep(15)
 
     # Append the data in the spreadsheet, including a timestamp
     try:
         worksheet.append_row((datetime.datetime.now().isoformat(), temp, hum, ac))
-        conn.request("POST", "/update", params, headers)
-        conn2.request("POST", "/update", params2, headers2)
-        response = conn.getresponse()
-        response2 = conn2.getresponse()
-        print response.status, response.reason
-        data = response.read()
-        data2 = response2.read()
-        conn.close()
-        conn2.close()
+        
     except:
         # Error appending data, most likely because credentials are stale.
         # Null out the worksheet so a login is performed at the top of the loop.
