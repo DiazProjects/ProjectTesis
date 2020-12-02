@@ -8,15 +8,9 @@
 * Raspberry Pi 3
 * Arduino Uno
 
-## Getting started
-
-
-## USB Rules
-
-
 ## Autors
-* Duvan Diaz ()
-* Luis Guazrnizo ()
+* Duvan Diaz (diazjovenduvan@gmail.com)
+* Luis Guazrnizo (2420141034@estudiantesunibague.edu.co)
 
 ## License
 This is free and unencumbered software released into the public domain.
